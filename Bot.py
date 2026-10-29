@@ -1,6 +1,7 @@
-from aiohttp import web
 import asyncio
+import os
 import logging
+from aiohttp import web
 from aiogram import Bot, Dispatcher, F, types
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -8,12 +9,28 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 # 1. Сюда вставь токен от BotFather в кавычках
 TOKEN = "9087803060:AAHc7yBMYPT7FFWzEP7zXjuV66XsPBiz3xI"
 
-# 2. Сюда вставь свой ник в Тг БЕЗ собаки @ (например: ivan)
-MY_TELEGRAM = "@RichiHons"  
+# 2. Сюда вставь свой ник в Тг БЕЗ собаки @ (просто имя пользователя)
+MY_TELEGRAM = "RichiHons"  
 
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
+
+# --- Веб-сервер для Render ---
+async def handle(request):
+    return web.Response(text="Bot is alive!")
+
+app = web.Application()
+app.router.add_get("/", handle)
+
+async def start_web_server():
+    runner = web.AppRunner(app)
+    await runner.setup()
+    port = int(os.environ.get("PORT", 8080))
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+    logging.info(f"Web server started on port {port}")
+# -----------------------------
 
 def get_date_keyboard():
     builder = InlineKeyboardBuilder()
@@ -74,23 +91,9 @@ async def process_secret(callback: types.CallbackQuery):
     await callback.answer()
 
 async def main():
+    # Запускаем и веб-сервер для порта Render, и самого бота одновременно
+    await start_web_server()
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
     asyncio.run(main())
-
-async def handle(request):
-    return web.Response(text="Bot is alive!")
-
-app = web.Application()
-app.router.add_get("/", handle)
-
-async def web_server():
-    runner = web.AppRunner(app)
-    await runner.setup()
-    # Render сам передает порт через переменные среды, поэтому берем порт из окружения или ставим 8080 по умолчанию
-    import os
-    port = int(os.environ.get("PORT", 8080))
-    site = web.TCPSite(runner, "0.0.0.0", port)
-    await site.start()
-
