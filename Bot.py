@@ -1,36 +1,16 @@
-import asyncio
 import os
 import logging
-from aiohttp import web
 from aiogram import Bot, Dispatcher, F, types
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiohttp import web
 
-# 1. Токен твоего бота
 TOKEN = "9087803060:AAHc7yBMYPT7FFWzEP7zXjuV66XsPBiz3xI"
-
-# 2. Твой ник в Тг БЕЗ собаки @
-MY_TELEGRAM = "RichiHons"  
+MY_TELEGRAM = "RichiHons"
 
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
-
-# --- Веб-сервер для Render ---
-async def handle(request):
-    return web.Response(text="Bot is alive!")
-
-app = web.Application()
-app.router.add_get("/", handle)
-
-async def start_web_server():
-    runner = web.AppRunner(app)
-    await runner.setup()
-    port = int(os.environ.get("PORT", 8080))
-    site = web.TCPSite(runner, "0.0.0.0", port)
-    await site.start()
-    logging.info(f"Web server started on port {port}")
-# -----------------------------
 
 def get_date_keyboard():
     builder = InlineKeyboardBuilder()
@@ -90,10 +70,22 @@ async def process_secret(callback: types.CallbackQuery):
     )
     await callback.answer()
 
-async def main():
-    # Запускаем и веб-сервер, и бота одновременно
-    await start_web_server()
-    await dp.start_polling(bot)
+# Простейший веб-сервер для Render, который удовлетворяет требованиям хостинга
+async def handle(request):
+    return web.Response(text="Bot is alive and running!")
+
+app = web.Application()
+app.router.add_get("/", handle)
+
+async def on_startup(app):
+    # Удаляем вебхуки на всякий случай, чтобы не было конфликтов getUpdates
+    await bot.delete_webhook(drop_pending_updates=True)
+    # Запускаем поллинг в фоновом режиме
+    import asyncio
+    asyncio.create_task(dp.start_polling(bot))
+
+app.on_startup.append(on_startup)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    port = int(os.environ.get("PORT", 8080))
+    web.run_app(app, host="0.0.0.0", port=port)
