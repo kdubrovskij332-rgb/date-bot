@@ -6,10 +6,10 @@ from aiogram import Bot, Dispatcher, F, types
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-# 1. Сюда вставь токен от BotFather в кавычках
+# 1. Токен твоего бота
 TOKEN = "9087803060:AAHc7yBMYPT7FFWzEP7zXjuV66XsPBiz3xI"
 
-# 2. Сюда вставь свой ник в Тг БЕЗ собаки @ (просто имя пользователя)
+# 2. Твой ник в Тг БЕЗ собаки @
 MY_TELEGRAM = "RichiHons"  
 
 logging.basicConfig(level=logging.INFO)
@@ -91,7 +91,7 @@ async def process_secret(callback: types.CallbackQuery):
     await callback.answer()
 
 async def main():
-    # Запускаем и веб-сервер для порта Render, и самого бота одновременно
+    # Запускаем и веб-сервер, и бота одновременно
     await start_web_server()
     await dp.start_polling(bot)
 
