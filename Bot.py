@@ -1,5 +1,7 @@
 import os
 import logging
+import asyncio
+import aiohttp
 from aiogram import Bot, Dispatcher, F, types
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -7,6 +9,9 @@ from aiohttp import web
 
 TOKEN = "9087803060:AAHc7yBMYPT7FFWzEP7zXjuV66XsPBiz3xI"
 MY_TELEGRAM = "RichiHons"
+
+# Замени на адрес твоего веб-сервиса на Render (без слэша на конце)
+RENDER_URL = "https://date-bot-3aj8.onrender.com"
 
 # Разрешенные ID: её ID и твой ID
 ALLOWED_USER_IDS = [
@@ -91,7 +96,6 @@ async def process_menu_dates(callback: types.CallbackQuery):
     )
     await callback.answer()
 
-# Галерея фотографий с кнопками навигации
 @dp.callback_query(F.data.startswith("photo_"))
 async def process_photo_navigation(callback: types.CallbackQuery):
     index = int(callback.data.split("_")[1])
@@ -107,7 +111,6 @@ async def process_photo_navigation(callback: types.CallbackQuery):
     builder.button(text="🏠 Главное меню", callback_data="back_to_main")
     builder.adjust(2, 1)
     
-    # Отправляем новую фотку и удаляем старое сообщение, чтобы интерфейс не засорялся
     await callback.message.answer_photo(
         photo=photo_data["url"],
         caption=photo_data["caption"],
@@ -147,13 +150,24 @@ async def process_date_choice(callback: types.CallbackQuery):
 async def handle(request):
     return web.Response(text="Bot is alive and running!")
 
+# Фоновая задача, которая пингует сайт каждые 14 минут, чтобы он не засыпал
+async def self_ping():
+    while True:
+        await asyncio.sleep(840) # 14 минут
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(RENDER_URL) as resp:
+                    logging.info(f"Self-ping status: {resp.status}")
+        except Exception as e:
+            logging.error(f"Self-ping error: {e}")
+
 app = web.Application()
 app.router.add_get("/", handle)
 
 async def on_startup(app):
     await bot.delete_webhook(drop_pending_updates=True)
-    import asyncio
     asyncio.create_task(dp.start_polling(bot))
+    asyncio.create_task(self_ping()) # Запускаем анти-сон
 
 app.on_startup.append(on_startup)
 
