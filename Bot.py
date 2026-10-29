@@ -9,37 +9,54 @@ from aiohttp import web
 
 TOKEN = "9087803060:AAHc7yBMYPT7FFWzEP7zXjuV66XsPBiz3xI"
 MY_TELEGRAM = "RichiHons"
-
-# Замени на адрес твоего веб-сервиса на Render (без слэша на конце)
 RENDER_URL = "https://date-bot-3aj8.onrender.com"
 
-# Разрешенные ID: её ID и твой ID
 ALLOWED_USER_IDS = [
     1067015608, # ID твоей девушки
     1029773942  # Твой ID
 ]
 
-# Список ваших совместных фотографий
+# Полная галерея ваших совместных моментов
 PHOTOS = [
     {
-        "url": "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=1000&auto=format&fit=crop",
-        "caption": "✨ Наши моменты (1 из 5)\n\nЛюбимая, эта неделя особенная, совсем как ты. Спасибо за то, что ты у меня есть! 🥰"
+        "url": "https://i.ibb.co/6R39695C/1000023319.jpg",
+        "caption": "✨ Наши моменты (1 из 10)\n\nЛюбимая, эта неделя особенная, совсем как ты. Спасибо за то, что ты у меня есть! 🥰"
     },
     {
-        "url": "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=1000&auto=format&fit=crop",
-        "caption": "✨ Наши моменты (2 из 5)\n\nКаждый день с тобой — это отдельное маленькое приключение. ❤️"
+        "url": "https://i.ibb.co/v6y8Z42V/1000023203.jpg",
+        "caption": "✨ Наши моменты (2 из 10)\n\nКаждый день с тобой — это отдельное маленькое приключение. ❤️"
     },
     {
-        "url": "https://images.unsplash.com/photo-1522748987366-3d2f23604f76?q=80&w=1000&auto=format&fit=crop",
-        "caption": "✨ Наши моменты (3 из 5)\n\nДаже в самый пасмурный день рядом с тобой тепло и уютно. ✨"
+        "url": "https://i.ibb.co/4gT7n075/1000023175.jpg",
+        "caption": "✨ Наши моменты (3 из 10)\n\nДаже в самый пасмурный день рядом с тобой тепло и уютно. ✨"
     },
     {
-        "url": "https://images.unsplash.com/photo-1494774157365-9e04c6720e47?q=80&w=1000&auto=format&fit=crop",
-        "caption": "✨ Наши моменты (4 из 5)\n\nКрасотка моя! Самые лучшие моменты только с тобой. 💫"
+        "url": "https://i.ibb.co/4Z1j0c8h/1000012100.jpg",
+        "caption": "✨ Наши моменты (4 из 10)\n\nКрасотка моя! Самые лучшие моменты только с тобой. 💫"
     },
     {
-        "url": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=1000&auto=format&fit=crop",
-        "caption": "✨ Наши моменты (5 из 5)\n\nЧуть позже добавлю что-то еще... А пока просто знай, как сильно я тебя люблю! 🥰❤️"
+        "url": "https://i.ibb.co/210s5c38/1000011536.jpg",
+        "caption": "✨ Наши моменты (5 из 10)\n\nРядом с тобой мир становится ярче. 🌸"
+    },
+    {
+        "url": "https://i.ibb.co/9kx5957t/1000016668.jpg",
+        "caption": "✨ Наши моменты (6 из 10)\n\nСамые нежные и сладкие воспоминания. 💕"
+    },
+    {
+        "url": "https://i.ibb.co/Pvj5c3Z4/1000016856.jpg",
+        "caption": "✨ Наши моменты (7 из 10)\n\nНаша романтика и прогулки по самым красивым местам. 🌿"
+    },
+    {
+        "url": "https://i.ibb.co/ymN44g9f/1000016987.jpg",
+        "caption": "✨ Наши моменты (8 из 10)\n\nУлыбайся чаще, твоя улыбка бесценна! 🥰"
+    },
+    {
+        "url": "https://i.ibb.co/253tK9yS/1000012435.jpg",
+        "caption": "✨ Наши моменты (9 из 10)\n\nВместе мы команда в любых ситуациях — даже за бильярдным столом! 🎱❤️"
+    },
+    {
+        "url": "https://i.ibb.co/rK3s8HwN/1000012332.jpg",
+        "caption": "✨ Наши моменты (10 из 10)\n\nЧуть позже добавлю что-то еще... А пока просто знай, как сильно я тебя люблю! 🥰❤️"
     }
 ]
 
@@ -83,7 +100,7 @@ async def cmd_start(message: types.Message):
         return
 
     await message.answer(
-        "Привет, моя родная! 🥰 Добро пожаловать в наш личный уголок. "
+        "Привет, моя любимая! 🥰 Добро пожаловать в наш личный уголок. "
         "Выбирай, что тебе хочется посмотреть:",
         reply_markup=get_main_keyboard()
     )
@@ -103,6 +120,7 @@ async def process_photo_navigation(callback: types.CallbackQuery):
     
     builder = InlineKeyboardBuilder()
     
+    # Кнопки навигации «Назад» и «Вперед»
     if index > 0:
         builder.button(text="⬅️ Назад", callback_data=f"photo_{index - 1}")
     if index < len(PHOTOS) - 1:
@@ -150,10 +168,9 @@ async def process_date_choice(callback: types.CallbackQuery):
 async def handle(request):
     return web.Response(text="Bot is alive and running!")
 
-# Фоновая задача, которая пингует сайт каждые 14 минут, чтобы он не засыпал
 async def self_ping():
     while True:
-        await asyncio.sleep(840) # 14 минут
+        await asyncio.sleep(840)
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(RENDER_URL) as resp:
@@ -167,7 +184,7 @@ app.router.add_get("/", handle)
 async def on_startup(app):
     await bot.delete_webhook(drop_pending_updates=True)
     asyncio.create_task(dp.start_polling(bot))
-    asyncio.create_task(self_ping()) # Запускаем анти-сон
+    asyncio.create_task(self_ping())
 
 app.on_startup.append(on_startup)
 
