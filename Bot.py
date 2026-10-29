@@ -1,3 +1,4 @@
+from aiohttp import web
 import asyncio
 import logging
 from aiogram import Bot, Dispatcher, F, types
@@ -77,3 +78,19 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
+async def handle(request):
+    return web.Response(text="Bot is alive!")
+
+app = web.Application()
+app.router.add_get("/", handle)
+
+async def web_server():
+    runner = web.AppRunner(app)
+    await runner.setup()
+    # Render сам передает порт через переменные среды, поэтому берем порт из окружения или ставим 8080 по умолчанию
+    import os
+    port = int(os.environ.get("PORT", 8080))
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+
