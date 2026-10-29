@@ -14,26 +14,26 @@ ALLOWED_USER_IDS = [
     1029773942  # Твой ID
 ]
 
-# Список ваших совместных фотографий (мы можем легко добавлять сюда новые фото!)
+# Список ваших совместных фотографий
 PHOTOS = [
     {
-        "url": "https://i.ibb.co/6R39695C/1000023319.jpg", # Первое фото
+        "url": "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=1000&auto=format&fit=crop",
         "caption": "✨ Наши моменты (1 из 5)\n\nЛюбимая, эта неделя особенная, совсем как ты. Спасибо за то, что ты у меня есть! 🥰"
     },
     {
-        "url": "https://i.ibb.co/v6y8Z42V/1000023203.jpg", # Второе фото
+        "url": "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=1000&auto=format&fit=crop",
         "caption": "✨ Наши моменты (2 из 5)\n\nКаждый день с тобой — это отдельное маленькое приключение. ❤️"
     },
     {
-        "url": "https://i.ibb.co/4gT7n075/1000023175.jpg", # Третье фото
+        "url": "https://images.unsplash.com/photo-1522748987366-3d2f23604f76?q=80&w=1000&auto=format&fit=crop",
         "caption": "✨ Наши моменты (3 из 5)\n\nДаже в самый пасмурный день рядом с тобой тепло и уютно. ✨"
     },
     {
-        "url": "https://i.ibb.co/4Z1j0c8h/1000012100.jpg", # Четвертое фото
+        "url": "https://images.unsplash.com/photo-1494774157365-9e04c6720e47?q=80&w=1000&auto=format&fit=crop",
         "caption": "✨ Наши моменты (4 из 5)\n\nКрасотка моя! Самые лучшие моменты только с тобой. 💫"
     },
     {
-        "url": "https://i.ibb.co/210s5c38/1000011536.jpg", # Пятое фото
+        "url": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=1000&auto=format&fit=crop",
         "caption": "✨ Наши моменты (5 из 5)\n\nЧуть позже добавлю что-то еще... А пока просто знай, как сильно я тебя люблю! 🥰❤️"
     }
 ]
@@ -91,7 +91,7 @@ async def process_menu_dates(callback: types.CallbackQuery):
     )
     await callback.answer()
 
-# Функция для листания фотографий галереи
+# Галерея фотографий с кнопками навигации
 @dp.callback_query(F.data.startswith("photo_"))
 async def process_photo_navigation(callback: types.CallbackQuery):
     index = int(callback.data.split("_")[1])
@@ -99,16 +99,15 @@ async def process_photo_navigation(callback: types.CallbackQuery):
     
     builder = InlineKeyboardBuilder()
     
-    # Кнопки «Назад» и «Вперед» в зависимости от того, какая сейчас фото
     if index > 0:
         builder.button(text="⬅️ Назад", callback_data=f"photo_{index - 1}")
     if index < len(PHOTOS) - 1:
         builder.button(text="Вперед ➡️", callback_data=f"photo_{index + 1}")
         
     builder.button(text="🏠 Главное меню", callback_data="back_to_main")
-    builder.adjust(2, 1) # Красивое расположение кнопок
+    builder.adjust(2, 1)
     
-    # Отправляем фото с текстом
+    # Отправляем новую фотку и удаляем старое сообщение, чтобы интерфейс не засорялся
     await callback.message.answer_photo(
         photo=photo_data["url"],
         caption=photo_data["caption"],
