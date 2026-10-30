@@ -16,7 +16,7 @@ ALLOWED_USER_IDS = [
     1029773942  # Твой ID
 ]
 
-# Полная галерея ваших совместных моментов
+# Галерея ваших моментов
 PHOTOS = [
     {
         "url": "https://i.ibb.co/6R39695C/1000023319.jpg",
@@ -67,6 +67,22 @@ dp = Dispatcher()
 def is_allowed(user_id: int) -> bool:
     return user_id in ALLOWED_USER_IDS
 
+# Интерактивное приветствие с выбором
+def get_intro_keyboard():
+    builder = InlineKeyboardBuilder()
+    builder.button(text="✨ Идем дальше ❤️", callback_data="intro_yes")
+    builder.button(text="❌ Не хочу", callback_data="intro_no")
+    builder.adjust(1)
+    return builder.as_markup()
+
+# Проверка при попытке закрыть
+def get_exit_confirm_keyboard():
+    builder = InlineKeyboardBuilder()
+    builder.button(text="Да, точно хочу закончить", callback_data="exit_yes")
+    builder.button(text="Хм, я сомневаюсь...", callback_data="exit_no")
+    builder.adjust(1)
+    return builder.as_markup()
+
 def get_main_keyboard():
     builder = InlineKeyboardBuilder()
     builder.button(text="💌 Выбрать свидание", callback_data="menu_dates")
@@ -100,10 +116,47 @@ async def cmd_start(message: types.Message):
         return
 
     await message.answer(
-        "Привет, моя любимая! 🥰 Добро пожаловать в наш личный уголок. "
-        "Выбирай, что тебе хочется посмотреть:",
+        "Привет, моя любимая! 🥰 Смотри, что я тут для тебя создал. "
+        "Надеюсь, тебе понравится этот небольшой сюрприз!\n\nНу что, готовы двигаться дальше?",
+        reply_markup=get_intro_keyboard()
+    )
+
+# Реакция на «Идем дальше»
+@dp.callback_query(F.data == "intro_yes")
+async def process_intro_yes(callback: types.CallbackQuery):
+    await callback.message.edit_text(
+        "Отличный выбор! Я знал, что тебе понравится. 💫\n\n"
+        "Добро пожаловать в наш личный уголок. Выбирай, что тебе хочется посмотреть:",
         reply_markup=get_main_keyboard()
     )
+    await callback.answer()
+
+# Реакция на «Не хочу»
+@dp.callback_query(F.data == "intro_no")
+async def process_intro_no(callback: types.CallbackQuery):
+    await callback.message.edit_text(
+        "Ого... Ты уверена, что хочешь всё закончить прямо сейчас?",
+        reply_markup=get_exit_confirm_keyboard()
+    )
+    await callback.answer()
+
+# Если нажмет «Да, точно хочу закончить»
+@dp.callback_query(F.data == "exit_yes")
+async def process_exit_yes(callback: types.CallbackQuery):
+    await callback.message.edit_text(
+        "А я тебе не дам этого сделать! 😉 Слишком долго я это для тебя готовил. Давай-ка по новой! ❤️",
+        reply_markup=get_intro_keyboard()
+    )
+    await callback.answer()
+
+# Если сомневается («Хм, я сомневаюсь...»)
+@dp.callback_query(F.data == "exit_no")
+async def process_exit_no(callback: types.CallbackQuery):
+    await callback.message.edit_text(
+        "Отлично, я так и знал! 🥰 Ты же у меня самая любопытная. Пойдем скорее смотреть, что там внутри! ✨",
+        reply_markup=get_main_keyboard()
+    )
+    await callback.answer()
 
 @dp.callback_query(F.data == "menu_dates")
 async def process_menu_dates(callback: types.CallbackQuery):
@@ -120,7 +173,6 @@ async def process_photo_navigation(callback: types.CallbackQuery):
     
     builder = InlineKeyboardBuilder()
     
-    # Кнопки навигации «Назад» и «Вперед»
     if index > 0:
         builder.button(text="⬅️ Назад", callback_data=f"photo_{index - 1}")
     if index < len(PHOTOS) - 1:
