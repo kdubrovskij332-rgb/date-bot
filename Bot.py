@@ -9,11 +9,12 @@ from aiohttp import web
 
 TOKEN = "9087803060:AAHc7yBMYPT7FFWzEP7zXjuV66XsPBiz3xI"
 MY_TELEGRAM = "RichiHons"
+MY_USER_ID = 1029773942  # Твой ID для автоматических уведомлений в личку
 RENDER_URL = "https://date-bot-3aj8.onrender.com"
 WEBHOOK_PATH = f"/bot/{TOKEN}"
 WEBHOOK_URL = f"{RENDER_URL}{WEBHOOK_PATH}"
 
-ALLOWED_USER_IDS = [1067015608, 1029773942]
+ALLOWED_USER_IDS = [1067015608, MY_USER_ID]
 
 MOMENTS = [
     "✨ Момент 1 из 10\n\nЛюбимая, эта неделя особенная, совсем как ты. Спасибо за то, что ты у меня есть! 🥰",
@@ -35,6 +36,7 @@ dp = Dispatcher()
 def is_allowed(user_id: int) -> bool:
     return user_id in ALLOWED_USER_IDS
 
+# Клавиатуры
 def get_intro_keyboard():
     b = InlineKeyboardBuilder()
     b.button(text="✨ Идем дальше ❤️", callback_data="intro_yes")
@@ -46,28 +48,59 @@ def get_main_keyboard():
     b = InlineKeyboardBuilder()
     b.button(text="💌 Выбрать свидание", callback_data="menu_dates")
     b.button(text="📸 Наши моменты и сюрприз", callback_data="moment_0")
-    # Добавили кнопку возврата к началу прямо в главное меню
     b.button(text="⬅️ Назад к началу", callback_data="back_to_intro")
     b.adjust(1)
     return b.as_markup()
 
 def get_date_keyboard():
     b = InlineKeyboardBuilder()
-    b.button(text="🎬 Кино", callback_data="date_cinema")
-    b.button(text="🌙 Прогулка", callback_data="date_walk")
-    b.button(text="🍷 Романтический ужин", callback_data="date_dinner")
-    b.button(text="🎁 Секретный вариант", callback_data="date_secret")
+    b.button(text="🎬 Кино", callback_data="sub_cinema")
+    b.button(text="🍷 Ужин", callback_data="sub_dinner")
+    b.button(text="🌙 Прогулка", callback_data="sub_walk")
+    b.button(text="🎁 Секретный вариант", callback_data="final_secret")
     b.button(text="⬅️ Назад в меню", callback_data="back_to_main")
+    b.adjust(1)
+    return b.as_markup()
+
+# Подменю: Кино
+def get_cinema_keyboard():
+    b = InlineKeyboardBuilder()
+    b.button(text="🍿 Комедия", callback_data="final_cinema_comedy")
+    b.button(text="😱 Ужасы", callback_data="final_cinema_horror")
+    b.button(text="💖 Мелодрама", callback_data="final_cinema_romance")
+    b.button(text="🔥 Экшен / Боевик", callback_data="final_cinema_action")
+    b.button(text="⬅️ Назад к выбору", callback_data="menu_dates")
+    b.adjust(1)
+    return b.as_markup()
+
+# Подменю: Ужин
+def get_dinner_keyboard():
+    b = InlineKeyboardBuilder()
+    b.button(text="🏠 Дома (уютный вечер)", callback_data="final_dinner_home")
+    b.button(text="🍽️ В ресторане", callback_data="final_dinner_restaurant")
+    b.button(text="🧺 Пикник", callback_data="final_dinner_picnic")
+    b.button(text="🌆 На крыше", callback_data="final_dinner_roof")
+    b.button(text="⬅️ Назад к выбору", callback_data="menu_dates")
+    b.adjust(1)
+    return b.as_markup()
+
+# Подменю: Прогулка
+def get_walk_keyboard():
+    b = InlineKeyboardBuilder()
+    b.button(text="🏛️ По ночному Кракову", callback_data="final_walk_krakow")
+    b.button(text="🌲 В парке / лесу", callback_data="final_walk_nature")
+    b.button(text="⬅️ Назад к выбору", callback_data="menu_dates")
     b.adjust(1)
     return b.as_markup()
 
 def get_contact_keyboard():
     b = InlineKeyboardBuilder()
-    b.button(text="💬 Написать о согласии ❤️", url=f"https://t.me/{MY_TELEGRAM}")
-    b.button(text="⬅️ Назад к выбору", callback_data="menu_dates")
+    b.button(text="💬 Написать ему лично ❤️", url=f"https://t.me/{MY_TELEGRAM}")
+    b.button(text="⬅️ Выбрать что-то еще", callback_data="menu_dates")
     b.adjust(1)
     return b.as_markup()
 
+# Обработчики
 @dp.message(Command("start"))
 async def cmd_start(msg: types.Message):
     if not is_allowed(msg.from_user.id):
@@ -113,6 +146,23 @@ async def menu_dates(c: types.CallbackQuery):
     )
     await c.answer()
 
+# Переход в подкатегории
+@dp.callback_query(F.data == "sub_cinema")
+async def sub_cinema(c: types.CallbackQuery):
+    await c.message.edit_text("🎬 Какой жанр фильма выберем?", reply_markup=get_cinema_keyboard())
+    await c.answer()
+
+@dp.callback_query(F.data == "sub_dinner")
+async def sub_dinner(c: types.CallbackQuery):
+    await c.message.edit_text("🍷 Где устроим ужин?", reply_markup=get_dinner_keyboard())
+    await c.answer()
+
+@dp.callback_query(F.data == "sub_walk")
+async def sub_walk(c: types.CallbackQuery):
+    await c.message.edit_text("🌙 Где погуляем?", reply_markup=get_walk_keyboard())
+    await c.answer()
+
+# Навигация по моментам
 @dp.callback_query(F.data.startswith("moment_"))
 async def moment_nav(c: types.CallbackQuery):
     idx = int(c.data.split("_")[1])
@@ -135,15 +185,38 @@ async def back_main(c: types.CallbackQuery):
     )
     await c.answer()
 
-@dp.callback_query(F.data.startswith("date_"))
-async def date_choice(c: types.CallbackQuery):
-    choices = {
-        "date_cinema": "🎬 Отличный выбор! Пойдем на классный фильм с попкорном и самыми удобными местами. Жду не дождусь! ❤️",
-        "date_walk": "🌙 Ночная прогулка под звездами, теплая атмосфера и только мы вдвоем. Идеально! ✨",
-        "date_dinner": "🍷 Романтический ужин, вкусная еда, красивые свечи и потрясающая компания. Жду тебя! 🍝",
-        "date_secret": "🎁 Ого, выбор интригует! Это будет сюрприз, о котором ты точно не пожалеешь. Подсказка: бери хорошее настроение! 😉"
+# Финальный выбор с автоотправкой уведомления тебе в личку
+@dp.callback_query(F.data.startswith("final_"))
+async def final_choice(c: types.CallbackQuery):
+    choice_type = c.data.replace("final_", "")
+    
+    descriptions = {
+        "cinema_comedy": "🎬 Кино: Комедия",
+        "cinema_horror": "🎬 Кино: Ужасы",
+        "cinema_romance": "🎬 Кино: Мелодрама",
+        "cinema_action": "🎬 Кино: Экшен / Боевик",
+        "dinner_home": "🍷 Ужин: Дома (уютный вечер)",
+        "dinner_restaurant": "🍷 Ужин: В ресторане",
+        "dinner_picnic": "🍷 Ужин: Пикник",
+        "dinner_roof": "🍷 Ужин: На крыше",
+        "walk_krakow": "🌙 Прогулка: По ночному Кракову",
+        "walk_nature": "🌙 Прогулка: В парке / лесу",
+        "secret": "🎁 Секретный вариант-сюрприз"
     }
-    text = choices.get(c.data, "Идем?") + "\n\nНу что, согласна?"
+    
+    result_text = descriptions.get(choice_type, "Свидание")
+    
+    # 1. Отправляем уведомление тебе в личку автоматически!
+    try:
+        await bot.send_message(
+            MY_USER_ID,
+            f"🚨 **Ура! Любимая сделала выбор свидания!**\n\nОна выбрала: *{result_text}* ❤️"
+        )
+    except Exception as e:
+        logging.error(f"Не удалось отправить уведомление тебе: {e}")
+
+    # 2. Показываем ей красивый ответ в боте
+    text = f"✨ Отличный выбор!\n\nТы выбрала: **{result_text}**.\n\nЯ уже получил твой выбор и жду не дождусь нашей встречи! ❤️"
     await c.message.edit_text(text, reply_markup=get_contact_keyboard())
     await c.answer()
 
