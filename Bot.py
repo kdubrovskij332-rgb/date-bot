@@ -10,6 +10,8 @@ from aiohttp import web
 TOKEN = "9087803060:AAHc7yBMYPT7FFWzEP7zXjuV66XsPBiz3xI"
 MY_TELEGRAM = "RichiHons"
 RENDER_URL = "https://date-bot-3aj8.onrender.com"
+WEBHOOK_PATH = f"/bot/{TOKEN}"
+WEBHOOK_URL = f"{RENDER_URL}{WEBHOOK_PATH}"
 
 ALLOWED_USER_IDS = [1067015608, 1029773942]
 
@@ -109,7 +111,6 @@ async def moment_nav(c: types.CallbackQuery):
         b.button(text="⬅️ Назад", callback_data=f"moment_{idx - 1}")
     if idx < len(MOMENTS) - 1:
         b.button(text="Вперед ➡️", callback_data=f"moment_{idx + 1}")
-    # Кнопка возврата в главное меню из любого момента
     b.button(text="⬅️ Назад в меню", callback_data="back_to_main")
     b.adjust(2, 1)
     await c.message.edit_text(text, reply_markup=b.as_markup())
@@ -120,44 +121,3 @@ async def back_main(c: types.CallbackQuery):
     await c.message.edit_text(
         "Главное меню ❤️ Выбирай:",
         reply_markup=get_main_keyboard()
-    )
-    await c.answer()
-
-@dp.callback_query(F.data.startswith("date_"))
-async def date_choice(c: types.CallbackQuery):
-    choices = {
-        "date_cinema": "🎬 Отличный выбор! Пойдем на классный фильм с попкорном и самыми удобными местами. Жду не дождусь! ❤️",
-        "date_walk": "🌙 Ночная прогулка под звездами, теплая атмосфера и только мы вдвоем. Идеально! ✨",
-        "date_dinner": "🍷 Романтический ужин, вкусная еда, красивые свечи и потрясающая компания. Жду тебя! 🍝",
-        "date_secret": "🎁 Ого, выбор интригует! Это будет сюрприз, о котором ты точно не пожалеешь. Подсказка: бери хорошее настроение! 😉"
-    }
-    text = choices.get(c.data, "Идем?") + "\n\nНу что, согласна?"
-    await c.message.edit_text(text, reply_markup=get_contact_keyboard())
-    await c.answer()
-
-async def handle(request):
-    return web.Response(text="Bot is alive and running!")
-
-async def self_ping():
-    while True:
-        await asyncio.sleep(840)
-        try:
-            async with aiohttp.ClientSession() as s:
-                async with s.get(RENDER_URL) as resp:
-                    logging.info(f"Ping: {resp.status}")
-        except Exception as e:
-            logging.error(f"Ping error: {e}")
-
-app = web.Application()
-app.router.add_get("/", handle)
-
-async def on_startup(app):
-    await bot.delete_webhook(drop_pending_updates=True)
-    asyncio.create_task(dp.start_polling(bot))
-    asyncio.create_task(self_ping())
-
-app.on_startup.append(on_startup)
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
-    web.run_app(app, host="0.0.0.0", port=port)
