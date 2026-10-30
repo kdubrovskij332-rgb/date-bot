@@ -36,14 +36,7 @@ def is_allowed(user_id: int) -> bool:
 def get_intro_keyboard():
     b = InlineKeyboardBuilder()
     b.button(text="✨ Идем дальше ❤️", callback_data="intro_yes")
-    b.button(text="❌ Не хочу", callback_data="intro_no")
-    b.adjust(1)
-    return b.as_markup()
-
-def get_exit_keyboard():
-    b = InlineKeyboardBuilder()
-    b.button(text="Да, точно хочу закончить", callback_data="exit_yes")
-    b.button(text="Хм, я сомневаюсь...", callback_data="exit_no")
+    b.button(text="❌ Не хочу / Неинтересно", callback_data="intro_no")
     b.adjust(1)
     return b.as_markup()
 
@@ -67,7 +60,7 @@ def get_date_keyboard():
 def get_contact_keyboard():
     b = InlineKeyboardBuilder()
     b.button(text="💬 Написать о согласии ❤️", url=f"https://t.me/{MY_TELEGRAM}")
-    b.button(text="⬅️ В меню", callback_data="back_to_main")
+    b.button(text="⬅️ Назад к выбору", callback_data="menu_dates")
     b.adjust(1)
     return b.as_markup()
 
@@ -94,24 +87,8 @@ async def intro_yes(c: types.CallbackQuery):
 @dp.callback_query(F.data == "intro_no")
 async def intro_no(c: types.CallbackQuery):
     await c.message.edit_text(
-        "Ого... Ты уверена, что хочешь всё закончить прямо сейчас?",
-        reply_markup=get_exit_keyboard()
-    )
-    await c.answer()
-
-@dp.callback_query(F.data == "exit_yes")
-async def exit_yes(c: types.CallbackQuery):
-    await c.message.edit_text(
-        "А я тебе не дам этого сделать! 😉 Слишком долго я это для тебя готовил. Давай-ка по новой! ❤️",
+        "Нет, любимая, так не пойдёт! 😉 Слишком долго я это для тебя готовил, так что давай смотреть дальше! ❤️",
         reply_markup=get_intro_keyboard()
-    )
-    await c.answer()
-
-@dp.callback_query(F.data == "exit_no")
-async def exit_no(c: types.CallbackQuery):
-    await c.message.edit_text(
-        "Отлично, я так и знал! 🥰 Ты же у меня самая любопытная. Пойдем скорее смотреть, что там внутри! ✨",
-        reply_markup=get_main_keyboard()
     )
     await c.answer()
 
@@ -132,7 +109,8 @@ async def moment_nav(c: types.CallbackQuery):
         b.button(text="⬅️ Назад", callback_data=f"moment_{idx - 1}")
     if idx < len(MOMENTS) - 1:
         b.button(text="Вперед ➡️", callback_data=f"moment_{idx + 1}")
-    b.button(text="🏠 Главное меню", callback_data="back_to_main")
+    # Кнопка возврата в главное меню из любого момента
+    b.button(text="⬅️ Назад в меню", callback_data="back_to_main")
     b.adjust(2, 1)
     await c.message.edit_text(text, reply_markup=b.as_markup())
     await c.answer()
