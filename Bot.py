@@ -5,6 +5,7 @@ import aiohttp
 from aiogram import Bot, Dispatcher, F, types
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.types import FSInputFile
 from aiohttp import web
 
 TOKEN = "9087803060:AAHc7yBMYPT7FFWzEP7zXjuV66XsPBiz3xI"
@@ -188,37 +189,37 @@ async def music_menu_handler(c: types.CallbackQuery):
     )
     await c.answer()
 
-# Отправка трека: Эверест (стабильный file_id)
+# Отправка трека: Эверест
 @dp.callback_query(F.data == "play_everest")
 async def play_everest(c: types.CallbackQuery):
-    await bot.send_audio(
-        chat_id=c.from_user.id,
-        audio="CQACAgQAAxkBAAIY52rlpNf_S_3nLpea-hSsEvsK7A45AAKsIgACwOsoU7B_kEYXb8CAPQQ",
-        caption="🔥 Instasamka — Эверест ⚡️"
-    )
-    await c.message.answer("Выбери еще что-нибудь из музыки:", reply_markup=get_music_back_keyboard())
+    try:
+        audio = FSInputFile("everest.mp3")
+        await bot.send_audio(c.from_user.id, audio, caption="🔥 Instasamka — Эверест ⚡️", reply_markup=get_music_back_keyboard())
+    except Exception as e:
+        logging.error(f"Error: {e}")
+        await c.message.answer("Файл трека загружается или недоступен ❤️", reply_markup=get_music_back_keyboard())
     await c.answer()
 
 # Отправка трека: Казино
 @dp.callback_query(F.data == "play_casino")
 async def play_casino(c: types.CallbackQuery):
-    await bot.send_audio(
-        chat_id=c.from_user.id,
-        audio="CQACAgQAAxkBAAIY5WrlpCK-1MXPMHEFew1137E04S8hAAKrIgACwOsoU9fkbSYAAUeJUD0E",
-        caption="🎰 Dead Blonde — Казино 💫"
-    )
-    await c.message.answer("Выбери еще что-нибудь из музыки:", reply_markup=get_music_back_keyboard())
+    try:
+        audio = FSInputFile("casino-deadBlonde.mp3")
+        await bot.send_audio(c.from_user.id, audio, caption="🎰 Dead Blonde — Казино 💫", reply_markup=get_music_back_keyboard())
+    except Exception as e:
+        logging.error(f"Error: {e}")
+        await c.message.answer("Файл трека загружается или недоступен ❤️", reply_markup=get_music_back_keyboard())
     await c.answer()
 
 # Отправка трека: Мое тело — убийца
 @dp.callback_query(F.data == "play_ignatov")
 async def play_ignatov(c: types.CallbackQuery):
-    await bot.send_audio(
-        chat_id=c.from_user.id,
-        audio="CQACAgQAAxkBAAIY42rlo6_y3XxO6R7rtUHfYpEPMXJXAAIVJAAC1hgpU2FzracjAwg7PQQ",
-        caption="✨ Игнатов — Мое тело — убийца ❤️"
-    )
-    await c.message.answer("Выбери еще что-нибудь из музыки:", reply_markup=get_music_back_keyboard())
+    try:
+        audio = FSInputFile("Telo-ignat.mp3")
+        await bot.send_audio(c.from_user.id, audio, caption="✨ Игнатов — Мое тело — убийца ❤️", reply_markup=get_music_back_keyboard())
+    except Exception as e:
+        logging.error(f"Error: {e}")
+        await c.message.answer("Файл трека загружается или недоступен ❤️", reply_markup=get_music_back_keyboard())
     await c.answer()
 
 # Навигация по моментам
