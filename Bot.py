@@ -48,7 +48,7 @@ def get_main_keyboard():
     b = InlineKeyboardBuilder()
     b.button(text="💌 Выбрать свидание", callback_data="menu_dates")
     b.button(text="📸 Наши моменты и сюрприз", callback_data="moment_0")
-    b.button(text="🎧 Музыкальный вайб ✨", callback_data="music_menu")  # <--- Твоя новая кнопка здесь
+    b.button(text="🎧 Музыкальный вайб ✨", callback_data="music_menu")  # Музыкальная кнопка
     b.button(text="⬅️ Назад к началу", callback_data="back_to_intro")
     b.adjust(1)
     return b.as_markup()
@@ -63,18 +63,20 @@ def get_date_keyboard():
     b.adjust(1)
     return b.as_markup()
 
-# Меню музыки с категориями
+# Меню музыки с категориями и треками
 def get_music_keyboard():
     b = InlineKeyboardBuilder()
-    b.button(text="🔥 Драйв и Энергия", callback_data="music_drive")
-    b.button(text="✨ Атмосфера и Вайб", callback_data="music_vibe")
+    b.button(text="🔥 Instasamka — Эверест", callback_data="play_everest")
+    b.button(text="🎰 Dead Blonde — Казино", callback_data="play_casino")
+    b.button(text="✨ Игнатов — Мое тело — убийца", callback_data="play_ignatov")
     b.button(text="⬅️ Назад в меню", callback_data="back_to_main")
     b.adjust(1)
     return b.as_markup()
 
 def get_music_back_keyboard():
     b = InlineKeyboardBuilder()
-    b.button(text="⬅️ К музыкальному меню", callback_data="music_menu")
+    b.button(text="⬅️ Выбрать другую песню", callback_data="music_menu")
+    b.button(text="⬅️ Назад в меню", callback_data="back_to_main")
     b.adjust(1)
     return b.as_markup()
 
@@ -162,7 +164,7 @@ async def menu_dates(c: types.CallbackQuery):
     )
     await c.answer()
 
-# Переход в подкатегории
+# Переход в подкатегории свиданий
 @dp.callback_query(F.data == "sub_cinema")
 async def sub_cinema(c: types.CallbackQuery):
     await c.message.edit_text("🎬 Какой жанр фильма выберем?", reply_markup=get_cinema_keyboard())
@@ -178,34 +180,49 @@ async def sub_walk(c: types.CallbackQuery):
     await c.message.edit_text("🌙 Где погуляем?", reply_markup=get_walk_keyboard())
     await c.answer()
 
-# Обработчики музыкального раздела
+# Музыкальное меню
 @dp.callback_query(F.data == "music_menu")
 async def music_menu_handler(c: types.CallbackQuery):
     await c.message.edit_text(
-        "🎧 Выбери настроение или категорию треков:",
+        "🎧 Выбери трек, который хочешь послушать прямо сейчас:",
         reply_markup=get_music_keyboard()
     )
     await c.answer()
 
-@dp.callback_query(F.data == "music_drive")
-async def music_drive_handler(c: types.CallbackQuery):
-    text = (
-        "🔥 **Категория: Драйв и Энергия**\n\n"
-        "1. **Instasamka** — *Эверест*\n"
-        "2. **Dead Blonde** — *Казино*\n\n"
-        "Включай погромче и лови отличный вайб! ⚡️"
+# Отправка трека: Эверест
+@dp.callback_query(F.data == "play_everest")
+async def play_everest(c: types.CallbackQuery):
+    await c.message.answer("🔥 Включаем: Instasamka — Эверест ⚡️")
+    await bot.send_audio(
+        chat_id=c.from_user.id,
+        audio="CQACAgQAAxkBAAIY52rlpNf_S_3nLpea-hSsEvsK7A45AAKsIgACwOsoU7B_kEYXb8CAPQQ",
+        caption="Instasamka — Эверест ⚡️"
     )
-    await c.message.edit_text(text, reply_markup=get_music_back_keyboard(), parse_mode="Markdown")
+    await c.message.answer("Выбери еще что-нибудь из музыки:", reply_markup=get_music_back_keyboard())
     await c.answer()
 
-@dp.callback_query(F.data == "music_vibe")
-async def music_vibe_handler(c: types.CallbackQuery):
-    text = (
-        "✨ **Категория: Атмосфера и Вайб**\n\n"
-        "1. **Игнатов** — *Мое тело — убийца*\n\n"
-        "Расслабься, отдохни и наслаждайся моментом. ☕️"
+# Отправка трека: Казино
+@dp.callback_query(F.data == "play_casino")
+async def play_casino(c: types.CallbackQuery):
+    await c.message.answer("🎰 Включаем: Dead Blonde — Казино 💫")
+    await bot.send_audio(
+        chat_id=c.from_user.id,
+        audio="CQACAgQAAxkBAAIY5WrlpCK-1MXPMHEFew1137E04S8hAAKrIgACwOsoU9fkbSYAAUeJUD0E",
+        caption="Dead Blonde — Казино 💫"
     )
-    await c.message.edit_text(text, reply_markup=get_music_back_keyboard(), parse_mode="Markdown")
+    await c.message.answer("Выбери еще что-нибудь из музыки:", reply_markup=get_music_back_keyboard())
+    await c.answer()
+
+# Отправка трека: Мое тело — убийца
+@dp.callback_query(F.data == "play_ignatov")
+async def play_ignatov(c: types.CallbackQuery):
+    await c.message.answer("✨ Включаем: Игнатов — Мое тело — убийца ❤️")
+    await bot.send_audio(
+        chat_id=c.from_user.id,
+        audio="CQACAgQAAxkBAAIY42rlo6_y3XxO6R7rtUHfYpEPMXJXAAIVJAAC1hgpU2FzracjAwg7PQQ",
+        caption="Игнатов — Мое тело — убийца ❤️"
+    )
+    await c.message.answer("Выбери еще что-нибудь из музыки:", reply_markup=get_music_back_keyboard())
     await c.answer()
 
 # Навигация по моментам
@@ -231,7 +248,7 @@ async def back_main(c: types.CallbackQuery):
     )
     await c.answer()
 
-# Финальный выбор с автоотправкой уведомления тебе в личку
+# Финальный выбор свидания с автоотправкой уведомления в личку
 @dp.callback_query(F.data.startswith("final_"))
 async def final_choice(c: types.CallbackQuery):
     choice_type = c.data.replace("final_", "")
@@ -252,7 +269,6 @@ async def final_choice(c: types.CallbackQuery):
     
     result_text = descriptions.get(choice_type, "Свидание")
     
-    # 1. Отправляем уведомление тебе в личку автоматически!
     try:
         await bot.send_message(
             MY_USER_ID,
@@ -261,7 +277,6 @@ async def final_choice(c: types.CallbackQuery):
     except Exception as e:
         logging.error(f"Не удалось отправить уведомление тебе: {e}")
 
-    # 2. Показываем ей красивый ответ в боте
     text = f"✨ Отличный выбор!\n\nТы выбрала: **{result_text}**.\n\nЯ уже получил твой выбор и жду не дождусь нашей встречи! ❤️"
     await c.message.edit_text(text, reply_markup=get_contact_keyboard())
     await c.answer()
